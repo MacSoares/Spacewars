@@ -127,7 +127,7 @@ class Credits(ScrollableLayer):
     def text(self):
         return """Programmers:
 Mateus Souza Fernandes
-Macário Soares
+Macario Soares
 """
 
     def on_quit(self):
