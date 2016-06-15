@@ -20,6 +20,7 @@ from cocos.scene import Scene
 from engine.event import EventHandle
 from pyglet import resource, font
 from pyglet.window import key
+from pyglet import input
 from layers.base_layers import BackgroundLayer
 from layers.menu import MainMenu, Credits, OptionsMenu
 from configs import WIDTH, HEIGHT
@@ -38,6 +39,15 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
     director.init(width=WIDTH, height=HEIGHT, caption='SpaceWars')
+    keyboard = key.KeyStateHandler()
+    director.window.push_handlers(keyboard)
+    EventHandle().keyboard = keyboard
+    try:
+        EventHandle().joystick = input.get_joysticks()[0]
+        EventHandle().joystick.open()
+        EventHandle().joystick.z = EventHandle().joystick.rz = -1
+    except Exception, e:
+        pass
     scene = Scene()
     scene.add(BackgroundLayer('backgrounds/space_background.png'), z=0)
     scene.add(MultiplexLayer(
@@ -46,7 +56,4 @@ if __name__ == "__main__":
         OptionsMenu(),
     ),
         z=1)
-    keyboard = key.KeyStateHandler()
-    director.window.push_handlers(keyboard)
-    EventHandle().keyboard = keyboard
     director.run(scene)

@@ -21,9 +21,50 @@ from cocos.menu import (Menu, MultipleMenuItem, MenuItem, ToggleMenuItem,
 from game.scenes import GameScene
 from configs import FONT
 import sound as soundex
+from engine.event import EventHandle
+from time import sleep
 
 
-class MainMenu(Menu):
+class JoypadMenuSuport(object):
+
+    """docstring for JoypadMenuSuport"""
+
+    def __init__(self):
+        super(JoypadMenuSuport, self).__init__()
+
+    def on_joyaxis_motion(self, joystick, axis, value):
+        if (axis is 'x') or (axis is 'hat_x'):
+            return
+        if (abs(value) > 0.1):
+            print axis, value
+        if axis is 'hat_y':
+            value *= -1
+        idx = self.selected_index
+        if (value > 0.4):
+            idx += 1
+        if (value < -0.4):
+            idx -= 1
+        if idx < 0:
+            idx = len(self.children) - 1
+        elif idx > len(self.children) - 1:
+            idx = 0
+        self._select_item(idx)
+
+    def on_joybutton_press(self, joystick, button):
+        try:
+            print EventHandle()[button]
+            EventHandle().joystick.on_joyaxis_motion = EventHandle().void
+            EventHandle().joystick.on_joybutton_press = EventHandle().void
+            if EventHandle()[button] is 'B':
+                director.pop()
+            else:
+                self._activate_item()
+        except Exception, e:
+            pass
+        # return True
+
+
+class MainMenu(Menu, JoypadMenuSuport):
 
     """Class for Main Menu
 
@@ -99,8 +140,16 @@ class MainMenu(Menu):
         print "Choose your options"
         self.parent.switch_to(2)
 
+    def draw(self):
+        super(MainMenu, self).draw()
+        try:
+            EventHandle().joystick.on_joyaxis_motion = self.on_joyaxis_motion
+            EventHandle().joystick.on_joybutton_press = self.on_joybutton_press
+        except Exception, e:
+            pass
 
-class Credits(ScrollableLayer):
+
+class Credits(ScrollableLayer, JoypadMenuSuport):
 
     """docstring for Credits"""
 
@@ -138,8 +187,15 @@ Macario Soares
     def on_key_press(self, key, modifiers):
         self.parent.switch_to(0)
 
+    def draw(self):
+        super(Credits, self).draw()
+        try:
+            EventHandle().joystick.on_joybutton_press = self.on_key_press
+        except Exception, e:
+            pass
 
-class OptionsMenu(Menu):
+
+class OptionsMenu(Menu, JoypadMenuSuport):
 
     def __init__(self):
         super(OptionsMenu, self).__init__('SpaceWars')
@@ -170,6 +226,7 @@ class OptionsMenu(Menu):
             'anchor_x': 'center',
             'color': FONT['white'],
         }
+        self.sound = 0
 
         self.menu_anchor_y = CENTER
         self.menu_anchor_x = CENTER
@@ -181,13 +238,13 @@ class OptionsMenu(Menu):
             'SFX volume: ',
             self.on_sfx_volume,
             self.volumes,
-            int(soundex.sound_vol * len(self.volumes)))
+            self.sound)
         )
         items.append(MultipleMenuItem(
             'Music volume: ',
-            self.on_music_volume,
+            self.on_sfx_volume,
             self.volumes,
-            int(soundex.music_player.volume * len(self.volumes)))
+            self.sound)
         )
         items.append(
             ToggleMenuItem('Show FPS:', self.on_show_fps, director.show_FPS))
@@ -209,9 +266,12 @@ class OptionsMenu(Menu):
         director.show_FPS = value
 
     def on_sfx_volume(self, idx):
-        vol = idx / 10.0
-        soundex.sound_volume(vol)
+        self.sound = (self.sound + idx) % 2
 
-    def on_music_volume(self, idx):
-        vol = idx / 10.0
-        soundex.music_volume(vol)
+    def draw(self):
+        super(OptionsMenu, self).draw()
+        try:
+            EventHandle().joystick.on_joyaxis_motion = self.on_joyaxis_motion
+            EventHandle().joystick.on_joybutton_press = self.on_joybutton_press
+        except Exception, e:
+            pass

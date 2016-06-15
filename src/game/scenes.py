@@ -17,14 +17,19 @@ from cocos.scene import Scene
 from layers.base_layers import BackgroundLayer
 from game.sprites import SpaceShipSprite
 from engine.enemy import EnemyFactory
+from engine.gunfire import FireFactory
 from pyglet import clock
 from cocos.director import director
 from cocos.actions import MoveTo
 from configs import WIDTH, HEIGHT
+from engine.event import EventHandle
 import random
+from itertools import cycle
 
 
 class GameScene(Scene):
+
+    is_event_handler = True
 
     def __init__(self):
         super(GameScene, self).__init__()
@@ -34,7 +39,14 @@ class GameScene(Scene):
         EnemyFactory.populate_enemy("Rohenian", qnt=15)
         self.aerolites = EnemyFactory.create_enemy("Aerolite", 5)
         self.rohenians = EnemyFactory.create_enemy("Rohenian", 10)
+        self.recharge()
         clock.schedule_interval(self.set_direction, .8)
+
+    def recharge(self):
+        FireFactory.create_bullets('hero', qnt=90)
+        bullets = FireFactory().delivery_bullets(
+            'hero', 90, target=self.spaceship)
+        self.spaceship.bullets = cycle(bullets)
 
     def new_game(self):
         self.add(self.background, z=0)
@@ -69,4 +81,8 @@ class GameScene(Scene):
             clock.unschedule(self.re_launch_rohenian)
             print len(self.aerolites)
             director.pop()
+        elif keys == key.SPACE:
+            print "FIRE!!!"
+
         print key.symbol_string(keys)
+        print EventHandle().keyboard

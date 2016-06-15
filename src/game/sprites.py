@@ -13,7 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 """
 from cocos.sprite import Sprite
-from cocos.actions import MoveTo
+from cocos.actions import *
 from configs import WIDTH, HEIGHT
 from pyglet import resource
 import random
@@ -31,6 +31,8 @@ class SpaceShipSprite(Sprite):
         self.velocity = (0, 0)
         self.do(MoveTo((WIDTH / 2, 100), 2))
         self.do(SpaceshipAction())
+        self.bullets_used = []
+        self.bullets = []
 
     def move_left(self):
         self.image = resource.image('data/sprites/spaceship/left4.png')
@@ -40,6 +42,10 @@ class SpaceShipSprite(Sprite):
 
     def center_spaceship(self):
         self.image = resource.image('data/sprites/spaceship/center.png')
+
+    @classmethod
+    def get_position(cls):
+        return cls.position
 
 
 class Enemies(Sprite):
@@ -78,7 +84,32 @@ class Bullet(Sprite):
 
     """docstring for Bullet"""
 
-    def __init__(self):
-        image = "sprites/rohenians/fire.png"
+    dmg = 0.0
+    sprite_move_action = None
+
+    def __init__(self, image, dmg=0.1):
         super(Bullet, self).__init__(image)
         self.scale = 0.25
+        self.dmg = dmg
+
+    def info(self):
+        return "Dmg: %f\nFather: %s\nPosition: %s\n-----------\n" % (self.dmg, self.father, self.position)
+
+
+class SpaceShipBullet(Bullet):
+
+    """docstring for Bullet"""
+
+    def __init__(self, father=None, dmg=10):
+        self.imagem = "sprites/spaceship/fire.png"
+        super(SpaceShipBullet, self).__init__(self.imagem, dmg)
+        self.velocity = (0, 1000)
+
+
+class RoheniansBullet(Bullet):
+
+    """docstring for Bullet"""
+
+    def __init__(self, dmg=1):
+        self.imagem = "sprites/rohenians/fire.png"
+        super(RoheniansBullet, self).__init__(self.imagem, dmg)

@@ -2,8 +2,6 @@
 # -*- coding:utf-8 -*-
 
 """
-Copyright (C) 2015  Luiz Fernando Oliveira, Carlos Oliveira, Matheus Fernandes
-
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -30,6 +28,7 @@ class EnemyFactory(object):
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(EnemyFactory, cls).__new__(cls)
+        cls.empty = True
         return cls.instance
 
     @classmethod
@@ -39,11 +38,13 @@ class EnemyFactory(object):
             for x in xrange(0, qnt):
                 cls.enemy_list["Rohenian"].append(
                     Rohenian())
+            cls.empty = False
             return
         if enemy_type in aerolite:
             for x in xrange(0, qnt):
                 cls.enemy_list["Aerolite"].append(
                     Aerolite())
+            cls.empty = False
             return
         assert 0, "Bad enemy creation: " + enemy_type
 
@@ -60,10 +61,14 @@ class EnemyFactory(object):
         if enemy_type in rohenian:
             return_list = cls.enemy_list["Rohenian"][:qnt]
             cls.enemy_list["Rohenian"] = cls.enemy_list["Rohenian"][qnt:]
+            if len(cls.enemy_list[enemy_type]) is 0:
+                cls.empty = True
             return return_list
         if enemy_type in aerolite:
             return_list = cls.enemy_list["Aerolite"][:qnt]
             cls.enemy_list["Aerolite"] = cls.enemy_list["Aerolite"][qnt:]
+            if len(cls.enemy_list[enemy_type]) is 0:
+                cls.empty = True
             return return_list
         assert 0, "Bad enemy creation: " + enemy_type
 

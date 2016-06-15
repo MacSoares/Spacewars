@@ -19,8 +19,28 @@ class EventHandle(object):
     """docstring for EventHandle"""
 
     keyboard = None
+    joystick = None
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(EventHandle, cls).__new__(cls)
         return cls.instance
+
+    def __getitem__(self, key):
+        joypad_buttons = {
+            0: 'A',
+            1: 'B',
+            2: 'X',
+            3: 'Y',
+            4: 'LB',
+            5: 'RB',
+            6: 'Select',
+            7: 'Start',
+            8: 'Home',
+            9: 'L3',
+            10: 'R3',
+        }
+        return joypad_buttons[key]
+
+    def void(self, *kargs):
+        pass
