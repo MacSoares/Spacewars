@@ -2,8 +2,6 @@
 # -*- coding:utf-8 -*-
 
 """
-Copyright (C) 2015  Luiz Fernando Oliveira, Carlos Oliveira, Matheus Fernandes
-
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -15,18 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 """
 
-# from game.sprites import Bullets
-
-from cocos.sprite import Sprite
-
-
-class Bullets(Sprite):
-
-    """docstring for Bullet"""
-
-    def __init__(self):
-        pass
-
+from game.sprites import Bullets
 
 hero = ['Spaceship', 'spaceship', 'hero', 'player']
 rohenian = ['Rohenian', 'rohenian', 'enemies', 'ro']
