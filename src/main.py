@@ -14,46 +14,70 @@ GNU General Public License for more details.
 """
 import signal
 
-from cocos.layer import MultiplexLayer
 from cocos.director import director
+from cocos.layer import MultiplexLayer
 from cocos.scene import Scene
+from configs import WIDTH, HEIGHT
 from engine.event import EventHandle
-from pyglet import resource, font
-from pyglet.window import key
-from pyglet import input
 from layers.base_layers import BackgroundLayer
 from layers.menu import MainMenu, Credits, OptionsMenu
-from configs import WIDTH, HEIGHT
+from pyglet import input
+from pyglet import resource, font
+from pyglet.window import key
+from pyglet import clock
+from os import listdir
+
+
+def connect_joystick(*args):
+    if EventHandle().joystick_device is not None:
+        devices = listdir('/dev/input')
+        if 'js0' not in devices:
+            print("%s disconnected " % (EventHandle().joystick_device.name))
+            input.evdev._devices = {}
+            EventHandle().joystick = None
+            EventHandle().joystick_device = None
+        return
+        if 'js1' not in devices:
+            print("Only 1 joystick is supported for now")
+    try:
+        # Check if joystick is connected
+        EventHandle().joystick = input.get_joysticks()[0]
+        EventHandle().joystick.open()
+        EventHandle().joystick.z = EventHandle().joystick.rz = -1
+        EventHandle().joystick_device = input.get_devices()[0]
+        print "%s connected" % EventHandle().joystick_device.name
+    except Exception:
+        pass
 
 
 def signal_handler(signal_received, frame):
+    """ Handle Ctrl + C signal """
     if signal_received is signal.SIGINT:
         # erase the ^C on Terminal
         print "\r  "
         exit(0)
 
 if __name__ == "__main__":
+    # Add pyglet resources directories
     resource.path.append('data')
     resource.reindex()
     font.add_directory('data/fonts')
 
     signal.signal(signal.SIGINT, signal_handler)
-    director.init(width=WIDTH, height=HEIGHT, caption='SpaceWars')
+
     keyboard = key.KeyStateHandler()
-    director.window.push_handlers(keyboard)
     EventHandle().keyboard = keyboard
-    try:
-        EventHandle().joystick = input.get_joysticks()[0]
-        EventHandle().joystick.open()
-        EventHandle().joystick.z = EventHandle().joystick.rz = -1
-    except Exception, e:
-        pass
+
+    director.init(width=WIDTH, height=HEIGHT, caption='SpaceWars')
+    director.window.push_handlers(keyboard)
+
+    # observer to joystick
+    clock.schedule_interval(connect_joystick, .1)
+
+    # Create a initial menu scene
     scene = Scene()
     scene.add(BackgroundLayer('backgrounds/space_background.png'), z=0)
-    scene.add(MultiplexLayer(
-        MainMenu(),
-        Credits(),
-        OptionsMenu(),
-    ),
-        z=1)
+    scene.add(MultiplexLayer(MainMenu(),
+                             Credits(),
+                             OptionsMenu()), z=1)
     director.run(scene)

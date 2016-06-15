@@ -13,55 +13,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 """
 from cocos.director import director
-from cocos.text import Label
 from cocos.layer import ScrollableLayer
-from cocos.scenes.transitions import FadeBLTransition
 from cocos.menu import (Menu, MultipleMenuItem, MenuItem, ToggleMenuItem,
                         shake, shake_back, CENTER)
-from game.scenes import GameScene
+from cocos.scenes.transitions import FadeBLTransition
+from cocos.text import Label
 from configs import FONT
-import sound as soundex
-from engine.event import EventHandle
-from time import sleep
-
-
-class JoypadMenuSuport(object):
-
-    """docstring for JoypadMenuSuport"""
-
-    def __init__(self):
-        super(JoypadMenuSuport, self).__init__()
-
-    def on_joyaxis_motion(self, joystick, axis, value):
-        if (axis is 'x') or (axis is 'hat_x'):
-            return
-        if (abs(value) > 0.1):
-            print axis, value
-        if axis is 'hat_y':
-            value *= -1
-        idx = self.selected_index
-        if (value > 0.4):
-            idx += 1
-        if (value < -0.4):
-            idx -= 1
-        if idx < 0:
-            idx = len(self.children) - 1
-        elif idx > len(self.children) - 1:
-            idx = 0
-        self._select_item(idx)
-
-    def on_joybutton_press(self, joystick, button):
-        try:
-            print EventHandle()[button]
-            EventHandle().joystick.on_joyaxis_motion = EventHandle().void
-            EventHandle().joystick.on_joybutton_press = EventHandle().void
-            if EventHandle()[button] is 'B':
-                director.pop()
-            else:
-                self._activate_item()
-        except Exception, e:
-            pass
-        # return True
+from engine.event import EventHandle, JoypadMenuSuport
 
 
 class MainMenu(Menu, JoypadMenuSuport):
@@ -128,9 +86,11 @@ class MainMenu(Menu, JoypadMenuSuport):
 
     def new_game(self):
         print "New game selected"
-        game_scene = GameScene()
-        game_scene.parent = self.parent.parent
-        director.push(FadeBLTransition(game_scene.new_game(), 1.5))
+        from game.scenes import GameScene
+
+        self.game_scene = GameScene()
+        self.game_scene.parent = self.parent
+        director.push(FadeBLTransition(self.game_scene, 1.5))
 
     def credits(self):
         print "Show me the credits!"
@@ -141,17 +101,18 @@ class MainMenu(Menu, JoypadMenuSuport):
         self.parent.switch_to(2)
 
     def draw(self):
+        print director.scene_stack
         super(MainMenu, self).draw()
         try:
             EventHandle().joystick.on_joyaxis_motion = self.on_joyaxis_motion
             EventHandle().joystick.on_joybutton_press = self.on_joybutton_press
-        except Exception, e:
+        except Exception:
             pass
 
 
 class Credits(ScrollableLayer, JoypadMenuSuport):
 
-    """docstring for Credits"""
+    """ Credits menu """
 
     is_event_handler = True
 
@@ -176,7 +137,7 @@ class Credits(ScrollableLayer, JoypadMenuSuport):
 
     def text(self):
         return """Programmers:
-Mateus Souza Fernandes
+Matheus Souza Fernandes
 Macario Soares
 """
 
@@ -191,11 +152,13 @@ Macario Soares
         super(Credits, self).draw()
         try:
             EventHandle().joystick.on_joybutton_press = self.on_key_press
-        except Exception, e:
+        except Exception:
             pass
 
 
 class OptionsMenu(Menu, JoypadMenuSuport):
+
+    """ Options menu """
 
     def __init__(self):
         super(OptionsMenu, self).__init__('SpaceWars')
@@ -273,5 +236,5 @@ class OptionsMenu(Menu, JoypadMenuSuport):
         try:
             EventHandle().joystick.on_joyaxis_motion = self.on_joyaxis_motion
             EventHandle().joystick.on_joybutton_press = self.on_joybutton_press
-        except Exception, e:
+        except Exception:
             pass
