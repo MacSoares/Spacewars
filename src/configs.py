@@ -12,6 +12,10 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 """
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'src/data')
 
 FONT = {'header': 'Orbitron',
         'header_size': 60,
@@ -21,3 +25,6 @@ FONT = {'header': 'Orbitron',
         'body_size_selected': 46,
         'gray': (32, 16, 32, 255),
         'white': (255, 255, 255, 255)}
+
+WIDTH = 800
+HEIGHT = 600
