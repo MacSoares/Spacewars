@@ -2,6 +2,8 @@
 # -*- encoding: utf-8 -*-
 
 """
+Copyright (C) 2015  Luiz Fernando Oliveira, Carlos Oliveira, Matheus Fernandes
+
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -78,4 +80,3 @@ class RohenianSprite(Enemies):
         width = random.randint(0, WIDTH)
         self.position = (width, HEIGHT)
         self.scale = 0.30
-        self.do(MoveTo((WIDTH / 2, -self.image.height), 8.5))

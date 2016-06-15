@@ -2,6 +2,8 @@
 # -*- encoding: utf-8 -*-
 
 """
+Copyright (C) 2015  Luiz Fernando Oliveira, Carlos Oliveira, Matheus Fernandes
+
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -20,8 +22,8 @@ from game.sprites import SpaceShipSprite
 from engine.enemy import EnemyFactory
 from pyglet import clock
 from cocos.director import director
-from cocos.actions import MoveTo
-from configs import WIDTH
+from cocos.actions import MoveTo, MoveBy, Repeat
+from configs import WIDTH, HEIGHT
 import random
 
 
@@ -32,18 +34,27 @@ class GameScene(Layer):
         super(GameScene, self).__init__()
         self.background = BackgroundLayer('backgrounds/bluespace.png')
         self.spaceship = SpaceShipSprite()
-        EnemyFactory.populate_enemy("Aerolite", qnt=50)
-        EnemyFactory.populate_enemy("Rohenian", qnt=50)
+        EnemyFactory.populate_enemy("Aerolite", qnt=15)
+        EnemyFactory.populate_enemy("Rohenian", qnt=15)
         self.aerolites = EnemyFactory.create_enemy("Aerolite", 5)
-        self.rohenians = EnemyFactory.create_enemy("Rohenian", 5)
-        clock.schedule_interval(self.re_launch, 8)
+        self.rohenians = EnemyFactory.create_enemy("Rohenian", 10)
+        clock.schedule_interval(self.re_launch_aero, 15)
+        clock.schedule_interval(self.re_launch_rohenian, 35)
         clock.schedule_interval(self.set_direction, .8)
 
-    def re_launch(self, *arg):
-        print 'new wave', arg
-        self.aerolites += EnemyFactory.create_enemy("Aerolite", 5)
-        self.rohenians += EnemyFactory.create_enemy("Rohenian", 5)
-        director.scene = self.new_game()
+    def re_launch_aero(self, *arg):
+        print 'new wave Aerolite', arg
+        for aero in self.aerolites:
+            aero.position = (random.randint(0, WIDTH), HEIGHT + HEIGHT / 8)
+            aero.do(
+                MoveTo((random.randint(0, WIDTH), -aero.image.height), random.randint(7, 15)))
+        director.scene = self.set_direction()
+
+    def re_launch_rohenian(self, *arg):
+        print 'new wave Rohenian', arg
+        for rohenian in self.rohenians:
+            rohenian.position = (random.randint(0, WIDTH), HEIGHT)
+        director.scene = self.set_direction()
 
     def new_game(self):
         scene = Scene()
@@ -54,28 +65,37 @@ class GameScene(Layer):
 
         for aero in self.aerolites:
             width = random.randint(0, WIDTH)
-            aero.do(MoveTo((width, -aero.image.height), 8))
+            aero.do(MoveTo((width, -aero.image.height), random.randint(7, 15)))
             scene.add(aero)
 
         for rohenian in self.rohenians:
-            width = random.randint(-WIDTH, 3 * WIDTH)
-            rohenian.do(MoveTo((width, -rohenian.image.height), 8.5))
+            width = random.randint(-WIDTH, 2 * WIDTH)
+            rohenian.do(MoveTo((0, rohenian.image.height), 20.5))
             scene.add(rohenian)
 
         return scene
 
     def set_direction(self, *args):
         scene = Scene()
+        scene.add(self.background, z=0)
+        scene.add(self)
+        scene.add(self.spaceship)
+
         for rohenian in self.rohenians:
             print rohenian.position
-            if rohenian.position[1] < 100:
-                self.rohenians.remove(rohenian)
+            if rohenian.position[1] < -rohenian.image.height * 0.7:
+                # self.rohenians.remove(rohenian)
+                pass
             else:
-                width = random.randint(-WIDTH, 2 * WIDTH)
-                rohenian.do(MoveTo((-width, -rohenian.image.height), 8.5))
+                width = random.randint(-WIDTH, WIDTH)
+                rohenian.do(
+                    MoveBy((width, -rohenian.image.height), random.randint(8, 13)))
                 scene.add(rohenian)
+        print len(self.rohenians)
 
         for aero in self.aerolites:
+            # width = random.randint(-WIDTH, WIDTH)
+            # aero.do(MoveTo((width, -aero.image.height), 7.5))
             scene.add(aero)
 
         return scene
@@ -95,6 +115,7 @@ class GameScene(Layer):
     def on_key_press(self, keys, mod):
         if keys == key.ESCAPE:
             clock.unschedule(self.set_direction)
-            clock.unschedule(self.re_launch)
+            clock.unschedule(self.re_launch_aero)
+            clock.unschedule(self.re_launch_rohenian)
             print len(self.aerolites)
         print key.symbol_string(keys)
